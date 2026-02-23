@@ -9,3 +9,4 @@ DEFAULT_AVERAGE_DAYS = 7
 # Database Collection Names
 STORES_COLLECTION = "stores"
 FORECASTS_COLLECTION = "forecasts"
+SALES_COLLECTION = "sales"
