@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from forcast_generator import forecast_loop
 from loguru import logger
 from database import forecasts_collection
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -18,7 +19,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="KFC Sales Forecast API", lifespan=lifespan)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
