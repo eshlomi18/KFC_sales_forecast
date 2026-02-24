@@ -24,6 +24,30 @@ services:
       # Persist database data on the local machine even if container is removed
       - mongo_data:/data/db
 
+  # Mongo Express - Web UI for MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081" # Map local port 8081 to access the UI via browser
+    environment:
+      # Connect the UI to the 'db' service defined above
+      - ME_CONFIG_MONGODB_URL=mongodb://db:27017/
+    depends_on:
+      - db # Ensure DB starts before the UI
+
+  # --- NEW: The temporary seeder service ---
+  seeder:
+    build: ./backend
+    command: python seed.py
+    working_dir: /app
+    volumes:
+      # Give the seeder access to the backend folder just like the API has
+      - ./backend:/app
+    environment:
+      - MONGO_URL=mongodb://db:27017
+    depends_on:
+      - db
+
 volumes:
   # Declare the named volume for MongoDB
   mongo_data:

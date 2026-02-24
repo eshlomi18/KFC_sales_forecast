@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from database import sales_collection, forecasts_collection
 from config import settings
 from models import SalesForecast
+from loguru import logger
 
 
 def get_calculation_dates():
@@ -77,20 +78,20 @@ async def save_forecasts(results, target_date):
     if forecasts_to_insert:
         await forecasts_collection.delete_many({"forecast_date": target_date})
         await forecasts_collection.insert_many(forecasts_to_insert)
-        print(f"[V] Successfully saved {len(forecasts_to_insert)} forecasts for {target_date.strftime('%Y-%m-%d')}.")
+        logger.success(f"Successfully saved {len(forecasts_to_insert)} forecasts for {target_date.strftime('%Y-%m-%d')}.")
 
 
 async def generate_daily_forecast():
     """
     Orchestrator function: handles dates calculation -> data fetching -> data saving.
     """
-    print(f"[*] Starting generator: Calculating average from the last {settings.average_days_back} days...")
+    logger.info(f"Starting generator: Calculating average from the last {settings.average_days_back} days...")
 
     target_date, history_start_date = get_calculation_dates()
     results = await fetch_sales_averages(history_start_date)
 
     if not results:
-        print("[!] No historical sales data found. Skipping forecast generation.")
+        logger.warning("No historical sales data found. Skipping forecast generation.")
         return
 
     await save_forecasts(results, target_date)
@@ -105,7 +106,7 @@ async def forecast_loop():
     task scheduler or background job queue to handle precise timing, state management,
     and catch-up executions if the server goes down.
     """
-    print(f"[*] Forecast background task started. Interval: {settings.forecast_interval_hours} hours.")
+    logger.info(f"Forecast background task started. Interval: {settings.forecast_interval_hours} hours.")
 
     while True:
         try:
@@ -113,13 +114,13 @@ async def forecast_loop():
             await generate_daily_forecast()
 
             sleep_duration = timedelta(hours=settings.forecast_interval_hours)
-            print(f"[*] Generator going to sleep for {settings.forecast_interval_hours} hours...\n")
+            logger.info(f"Generator going to sleep for {settings.forecast_interval_hours} hours...")
             await asyncio.sleep(sleep_duration.total_seconds())
 
         except Exception as e:
             # Fallback: sleep for 5 minutes before retrying to avoid infinite rapid loops
-            print(f"[X] Error during forecast generation: {e}")
-            print("[*] Retrying in 5 minutes...")
+            logger.error(f"Error during forecast generation: {e}")
+            logger.info("Retrying in 5 minutes...")
             await asyncio.sleep(300)
 
 
