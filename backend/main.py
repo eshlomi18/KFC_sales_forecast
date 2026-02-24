@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query
 import asyncio
 from contextlib import asynccontextmanager
-from generator import forecast_loop
+from forcast_generator import forecast_loop
 from loguru import logger
 from database import forecasts_collection
 
