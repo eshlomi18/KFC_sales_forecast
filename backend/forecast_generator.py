@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from database import sales_collection, forecasts_collection
 from config import settings
-from models import SalesForecast
+from models import SalesForecastDB
 from loguru import logger
 
 
@@ -66,7 +66,7 @@ async def save_forecasts(results, target_date):
     for item in results:
         rounded_prediction = int(round(item["average_quantity"]))
 
-        forecast = SalesForecast(
+        forecast = SalesForecastDB(
             store_id=item["_id"]["store_id"],
             product_name=item["_id"]["product_name"],
             hour=item["_id"]["hour"],
